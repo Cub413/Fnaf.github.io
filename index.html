@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pantalla de Inicio</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+    touch-action: none;
+  }
+
+  #fondo {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  #menu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    z-index: 2;
+  }
+
+  button {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 1.2em;
+    border: 2px solid white;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    width: 220px;
+  }
+
+  button:active {
+    background: white;
+    color: black;
+  }
+
+  #rotar {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    z-index: 5;
+    text-align: center;
+  }
+
+  #creditosPanel {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    z-index: 10;
+  }
+
+  #creditosPanel h2 {
+    margin-bottom: 10px;
+    font-size: 1.5em;
+  }
+
+  #creditosPanel p {
+    margin: 6px 0;
+  }
+
+  #cerrarCreditos {
+    margin-top: 20px;
+    background: white;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<img id="fondo" src="texturas/fase5.png" alt="Fondo">
+
+<div id="menu">
+  <button id="nuevo">Nuevo Juego</button>
+  <button id="continuar">Continuar</button>
+  <button id="creditos">Créditos</button>
+</div>
+
+<div id="rotar" style="display:none;">🔄 Rota tu dispositivo a horizontal</div>
+
+<div id="creditosPanel">
+  <h2>Créditos</h2>
+  <p>🎮 Creado por Cub Studios</p>
+  <p>Basado en el estilo FNAF</p>
+  <p>Versión 1.0</p>
+  <button id="cerrarCreditos">Cerrar</button>
+</div>
+
+<script>
+  function checkOrientation() {
+    if (window.innerWidth < window.innerHeight) {
+      document.getElementById("rotar").style.display = "flex";
+      document.getElementById("menu").style.display = "none";
+    } else {
+      document.getElementById("rotar").style.display = "none";
+      document.getElementById("menu").style.display = "flex";
+    }
+  }
+
+  window.addEventListener("load", checkOrientation);
+  window.addEventListener("resize", () => {
+    const wasHidden = document.getElementById("rotar").style.display === "flex";
+    checkOrientation();
+    if (wasHidden && window.innerWidth > window.innerHeight) location.reload();
+  });
+
+  // Detectar noche actual
+  let nocheActual = localStorage.getItem("nocheActual");
+  const continuarBtn = document.getElementById("continuar");
+
+  if (nocheActual) {
+    const num = nocheActual.match(/\d+/);
+    if (num) continuarBtn.textContent = "Continuar Noche " + num[0];
+  }
+
+  document.getElementById("nuevo").onclick = () => {
+    localStorage.setItem("nocheActual", "noche1.html");
+    window.location.href = "noche1.html";
+  };
+
+  continuarBtn.onclick = () => {
+    if (nocheActual) {
+      window.location.href = nocheActual;
+    } else {
+      const aviso = document.createElement("div");
+      aviso.textContent = "⚠️ No hay partida guardada";
+      aviso.style.position = "fixed";
+      aviso.style.bottom = "20px";
+      aviso.style.left = "50%";
+      aviso.style.transform = "translateX(-50%)";
+      aviso.style.background = "rgba(255,255,255,0.9)";
+      aviso.style.color = "black";
+      aviso.style.padding = "10px 20px";
+      aviso.style.borderRadius = "10px";
+      aviso.style.fontFamily = "Courier New";
+      aviso.style.zIndex = "20";
+      document.body.appendChild(aviso);
+      setTimeout(()=>aviso.remove(), 2000);
+    }
+  };
+
+  document.getElementById("creditos").onclick = () => {
+    document.getElementById("creditosPanel").style.display = "flex";
+  };
+
+  document.getElementById("cerrarCreditos").onclick = () => {
+    document.getElementById("creditosPanel").style.display = "none";
+  };
+</script>
+
+</body>
+</html>

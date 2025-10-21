@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Felicidades - Noche 6</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+    color: white;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    text-align: center;
+    animation: fadeIn 2s ease-in;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin-bottom: 10px;
+    animation: glow 2s infinite alternate;
+  }
+
+  p {
+    font-size: 1.2em;
+    opacity: 0.8;
+  }
+
+  @keyframes glow {
+    from { text-shadow: 0 0 5px white; }
+    to { text-shadow: 0 0 20px cyan, 0 0 10px white; }
+  }
+
+  button {
+    margin-top: 40px;
+    padding: 12px 28px;
+    font-size: 1.2em;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 2px solid white;
+    border-radius: 8px;
+    text-transform: uppercase;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    background: white;
+    color: black;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(1.05); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .scanlines::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      transparent 0px,
+      rgba(255,255,255,0.02) 2px,
+      transparent 4px
+    );
+    animation: flicker 0.08s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.6; }
+  }
+
+  #jumpscare {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: none;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+</style>
+</head>
+<body class="scanlines">
+
+<h1>🎉 ¡Felicidades, sobreviviste la Noche 5! 🎉</h1>
+<p>Eres un verdadero guardia nocturno profesional.</p>
+<button id="nextBtn">Siguiente ➜</button>
+
+<div id="jumpscare"></div>
+
+<script>
+  // 🔊 Configuración de sonido como en tu juego
+  const sounds = {
+    jumpscare: { 
+      audio: new Audio('texturas/jumpscare.mp3'), 
+      volume: 0.05, 
+      start: 3.5,
+      end: 5
+    }
+  };
+
+  const btn = document.getElementById("nextBtn");
+  const jumpscare = document.getElementById("jumpscare");
+  let jumpscareActive = false;
+
+  function playFullJumpscare(callback) {
+    if (jumpscareActive) return;
+    jumpscareActive = true;
+
+    jumpscare.style.display = "block";
+
+    const jsAudio = sounds.jumpscare.audio;
+    jsAudio.volume = sounds.jumpscare.volume;
+    jsAudio.currentTime = sounds.jumpscare.start;
+    jsAudio.play();
+
+    const sequence = [1,2,3,4,5,5,4,3,2,1,1,2,3,4,5];
+    let index = 0;
+
+    const interval = setInterval(() => {
+      if (index >= sequence.length) {
+        clearInterval(interval);
+        jumpscare.style.backgroundImage = 'url("texturas/jsc5.png")';
+        jsAudio.pause(); // detener al final
+        if (callback) callback();
+        return;
+      }
+      jumpscare.style.backgroundImage = `url("texturas/jsc${sequence[index]}.png")`;
+      index++;
+    }, 150);
+  }
+
+  btn.onclick = () => {
+    document.querySelector("h1").style.display = "none";
+    document.querySelector("p").style.display = "none";
+    btn.style.display = "none";
+
+    playFullJumpscare(() => {
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 5000);
+    });
+  };
+</script>
+
+</body>
+</html>
