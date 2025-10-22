@@ -30,6 +30,7 @@ html, body {
   border-radius: 12px;
   padding: 10px 18px;
   font-size: 18px;
+  opacity: 0.3; /* 🔹 30% de opacidad total */
 }
 #hideBtn { left: 20px; }
 #oxygenPanelBtn { right: 20px; }
@@ -160,25 +161,37 @@ color: white;
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #0f0;
+  background: #f9f3da; /* Color de papel claro */
+  color: #2a1a0c;
   font-family: 'Courier New', monospace;
-  font-size: 18px;
-  padding: 6px 12px;
-  border: 2px solid rgba(0, 255, 0, 0.5);
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), inset 0 0 3px rgba(0, 255, 0, 0.3);
-  text-shadow: 0 0 4px rgba(0, 255, 0, 0.7);
+  font-size: 17px;
+  padding: 12px 18px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 4px;
+  text-align: left;
   user-select: none;
+  transform: rotate(-0.8deg);
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.25),
+    inset 0 0 2px rgba(0,0,0,0.05);
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0px, transparent 26px, rgba(0,0,0,0.04) 27px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.5), rgba(255,255,255,0.5));
+  clip-path: polygon(
+    3% 2%, 10% 0%, 18% 1%, 28% 0%, 38% 2%, 48% 1%, 58% 0%, 68% 2%, 78% 1%, 88% 0%, 96% 2%, 99% 10%, 
+    98% 20%, 99% 30%, 98% 40%, 99% 50%, 98% 60%, 99% 70%, 98% 80%, 99% 90%, 96% 98%, 
+    88% 99%, 78% 98%, 68% 99%, 58% 98%, 48% 99%, 38% 98%, 28% 99%, 18% 98%, 8% 99%, 3% 95%, 
+    2% 85%, 3% 75%, 2% 65%, 3% 55%, 2% 45%, 3% 35%, 2% 25%, 3% 15%, 2% 5%
+  );
 }
+
 
 </style>
 
 </head>
 <body>
 <div id="gameCanvas"></div>
-<button id="hideBtn">Esconderse</button>
+<button id="hideBtn">cerrar</button>
 <button id="oxygenPanelBtn">Energia</button>
 
 <div id="oxygenPanel">
@@ -326,7 +339,7 @@ hideBtn.addEventListener('click', () => {
   hideTimer = 0;
   playSound(sounds.hide_unhide);
   playSound(sounds.ambiente);
-  hideBtn.textContent = isHidden ? "Desesconderse" : "Esconderse";
+  hideBtn.textContent = isHidden ? "abrir" : "cerrar";
 
   // 🔹 Oculta automáticamente el panel de oxígeno al esconderse
   if (isHidden && oxygenPanel.classList.contains('show')) {
@@ -376,6 +389,67 @@ canvas.style.transform = `translate(${moveX}px, ${moveY}px)`;
 requestAnimationFrame(animateCamera);
 }
 animateCamera();
+let pressStartTime = 0;
+let holding = false;
+let flashlightJumpscareTriggered = false;
+
+function playFlashlightJumpscare() {
+  if (jumpscareActive || flashlightJumpscareTriggered || gameOver) return;
+  flashlightJumpscareTriggered = true;
+  jumpscareActive = true;
+
+  hideBtn.style.display = "none";
+  oxygenPanelBtn.style.display = "none";
+  if (oxygenPanel.classList.contains('show')) oxygenPanel.classList.remove('show');
+
+  const jsAudio = sounds.jumpscare.audio;
+  jsAudio.volume = 1;
+  jsAudio.currentTime = sounds.jumpscare.start || 0;
+  jsAudio.play();
+
+  const sequence = [1, 2, 3, 2, 1, 2, 3];
+  let i = 0;
+
+  const interval = setInterval(() => {
+    if (i >= sequence.length) {
+      clearInterval(interval);
+      canvas.style.backgroundImage = 'url("texturas/black.png")';
+      jumpscareActive = false;
+      showDeathScreen();
+      return;
+    }
+    canvas.style.backgroundImage = `url("texturas/j${sequence[i]}.png")`;
+    i++;
+  }, 150);
+}
+
+// --- Detección precisa de presión ---
+function startPressCheck() {
+  if (gameOver || jumpscareActive) return;
+  holding = true;
+  pressStartTime = performance.now();
+  checkHold();
+}
+
+function stopPressCheck() {
+  holding = false;
+}
+
+function checkHold() {
+  if (!holding || flashlightJumpscareTriggered || jumpscareActive || gameOver) return;
+  const heldTime = performance.now() - pressStartTime;
+  if (heldTime >= 5000) {
+    playFlashlightJumpscare();
+    return;
+  }
+  requestAnimationFrame(checkHold);
+}
+
+// Eventos táctiles y mouse solo para el canvas
+canvas.addEventListener('touchstart', startPressCheck);
+canvas.addEventListener('touchend', stopPressCheck);
+canvas.addEventListener('mousedown', startPressCheck);
+canvas.addEventListener('mouseup', stopPressCheck);
 
 function calcularPhaseDelay(hora, minutos) {
 const tiempoTotal = hora * 60 + minutos;
