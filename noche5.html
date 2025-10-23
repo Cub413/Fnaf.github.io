@@ -419,6 +419,22 @@ function startPressCheck() {
   pressStartTime = performance.now();
   checkHold();
 }
+let fullscreenActivated = false;
+
+function enableFullscreen() {
+  if (!fullscreenActivated) {
+    const elem = document.documentElement;
+
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+
+    fullscreenActivated = true;
+  }
+}
+
+document.addEventListener("touchstart", enableFullscreen, { once: true });
+document.addEventListener("click", enableFullscreen, { once: true });
 
 function stopPressCheck() {
   holding = false;
