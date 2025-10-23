@@ -1,0 +1,592 @@
+
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini FNAF - Oxígeno Panel</title>
+<style>
+html, body {
+  margin: 0; padding: 0;
+  background: #000;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+#gameCanvas {
+  width: 100vw;
+  height: 100vh;
+  background-position: center;
+  background-size: cover;
+  background-color: #000;
+  transition: transform 0.05s linear;
+}
+#hideBtn, #oxygenPanelBtn {
+  position: absolute;
+  bottom: 20px;
+  background: rgba(40,40,40,0.9);
+  color: white;
+  border: 2px solid #666;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 18px;
+  opacity: 0.3; /* 🔹 30% de opacidad total */
+}
+#hideBtn { left: 20px; }
+#oxygenPanelBtn { right: 20px; }
+
+#oxygenPanel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 300px;
+  background: rgba(25, 25, 30, 0.95);
+  backdrop-filter: blur(8px);
+  border: 4px solid #555;
+  border-radius: 30px;
+  padding: 20px;
+  font-family: monospace;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
+  transform: translate(-50%, 100%) scale(0.9); /* inicia abajo */
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  overflow: hidden;
+  z-index: 100;
+}
+
+#oxygenPanel.show {
+  transform: translate(-50%, -50%) scale(1); /* centrado */
+  opacity: 1;
+}
+
+/* iPad estilo pantalla */
+#oxygenPanel::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border-radius: 20px;
+  border: 2px solid rgba(200,200,200,0.2);
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.02),
+    rgba(255,255,255,0.02) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  mix-blend-mode: overlay;
+  animation: screenNoise 0.1s infinite;
+}
+
+@keyframes screenNoise {
+  0% { background-position: 0 0; }
+  50% { background-position: 0 2px; }
+  100% { background-position: 0 0; }
+}
+
+/* Ajustes internos */
+#oxygenPanel h3 {
+  margin-top: 0;
+  text-align: center;
+  color: #e0e0e0;
+  font-size: 24px;
+  text-shadow: 0 0 6px rgba(0,0,0,0.7);
+}
+
+#oxygenBar {
+  width: 70%;
+  height: 25px;
+  background: linear-gradient(145deg, #111, #333);
+  border-radius: 12px;
+  margin: 20px auto;
+  overflow: hidden;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+}
+
+#oxygenLevel {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #0f0, #7fff00);
+  box-shadow: 0 0 8px limegreen;
+  transition: width 0.3s;
+}
+
+#rechargeBtn {
+  display: block;
+  margin: 25px auto 0;
+  width: 150px;
+  padding: 12px;
+  background: linear-gradient(145deg, #111, #333);
+  border: 2px solid #666;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+  transition: 0.2s all;
+}
+
+#rechargeBtn:hover {
+  background: linear-gradient(145deg, #222, #555);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+}
+#nochePanel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f9f3da; /* Color de papel claro */
+  color: #2a1a0c;
+  font-family: 'Courier New', monospace;
+  font-size: 17px;
+  padding: 12px 18px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 4px;
+  text-align: left;
+  user-select: none;
+  transform: rotate(-0.8deg);
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.25),
+    inset 0 0 2px rgba(0,0,0,0.05);
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0px, transparent 26px, rgba(0,0,0,0.04) 27px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.5), rgba(255,255,255,0.5));
+  clip-path: polygon(
+    3% 2%, 10% 0%, 18% 1%, 28% 0%, 38% 2%, 48% 1%, 58% 0%, 68% 2%, 78% 1%, 88% 0%, 96% 2%, 99% 10%, 
+    98% 20%, 99% 30%, 98% 40%, 99% 50%, 98% 60%, 99% 70%, 98% 80%, 99% 90%, 96% 98%, 
+    88% 99%, 78% 98%, 68% 99%, 58% 98%, 48% 99%, 38% 98%, 28% 99%, 18% 98%, 8% 99%, 3% 95%, 
+    2% 85%, 3% 75%, 2% 65%, 3% 55%, 2% 45%, 3% 35%, 2% 25%, 3% 15%, 2% 5%
+  );
+}
+
+#gameOver {
+position: absolute;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+display: none;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+background: black;
+}
+#retryBtn {
+margin-top: 20px;
+padding: 10px 20px;
+font-size: 18px;
+border: 2px solid #666;
+border-radius: 12px;
+background: rgba(40,40,40,0.9);
+color: white;
+} </style>
+
+</head>
+<body>
+<div id="gameCanvas"></div>
+<button id="hideBtn">cerrar</button>
+<button id="oxygenPanelBtn">Energia</button>
+
+<div id="oxygenPanel">
+  <h3>Energia</h3>
+  <div id="oxygenBar"><div id="oxygenLevel"></div></div>
+  <button id="rechargeBtn">Recargar</button>
+</div>
+  <div id="nochePanel">Noche 4</div>
+<div id="gameOver">
+  <button id="retryBtn">Reintentar</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const hideBtn = document.getElementById('hideBtn');
+const oxygenPanelBtn = document.getElementById('oxygenPanelBtn');
+const oxygenPanel = document.getElementById('oxygenPanel');
+const oxygenLevel = document.getElementById('oxygenLevel');
+const rechargeBtn = document.getElementById('rechargeBtn');
+const gameOverDiv = document.getElementById('gameOver');
+const retryBtn = document.getElementById('retryBtn');
+
+let currentPhase = 0; // inicia en 0
+const maxPhase = 5;
+let isFlashOn = false;
+let isHidden = false;
+let phaseTimer = 0;
+let phaseDelay = 5000; // valor inicial
+let gameHour = 1;      
+let gameMinute = 0;    
+let initialDelayTimer = 0;
+const initialDelay = 5000; // 5 segundos antes de fase 1
+
+// Botón oxígeno
+// Mostrar/ocultar panel desde abajo
+oxygenPanelBtn.addEventListener('click', () => {
+  if (jumpscareActive) return;
+  oxygenPanel.classList.toggle('show');
+});
+
+
+// ⚠ Elimina todos los "oxygenPanel.style.display = ..." que tengas en tu JS
+// Por ejemplo, en hideBtn o al recargar, reemplázalos con:
+if (isHidden) {
+  oxygenPanel.classList.remove('show');
+}
+
+
+const clockDiv = document.createElement('div');
+clockDiv.style.position = 'absolute';
+clockDiv.style.top = '20px';
+clockDiv.style.left = '20px';
+clockDiv.style.padding = '8px 12px';
+clockDiv.style.background = 'rgba(0,0,0,0.7)';
+clockDiv.style.border = '2px solid white';
+clockDiv.style.borderRadius = '8px';
+clockDiv.style.color = 'white';
+clockDiv.style.fontSize = '20px';
+clockDiv.style.fontFamily = 'monospace';
+clockDiv.style.display = 'none';
+document.body.appendChild(clockDiv);
+
+function updateClock() {
+  if (gameOver) return;
+  clockDiv.style.display = (isHidden && isFlashOn) ? 'block' : 'none';
+
+  gameMinute++;
+  if(gameMinute >= 60){ gameMinute = 0; gameHour++; if(gameHour > 5) gameHour = 5; }
+
+  phaseDelay = calcularPhaseDelay(gameHour, gameMinute);
+
+  const hh = String(gameHour).padStart(2,'0');
+  const mm = String(gameMinute).padStart(2,'0');
+  clockDiv.textContent = `${hh}:${mm}`;
+}
+setInterval(updateClock, 1000);
+
+let oxygen = 100;
+let recharging = false;
+let gameOver = false;
+let phase5Timer = 0;
+let hideTimer = 0;
+let cameraAnimTime = 0;
+let jumpscareActive = false;
+let firstClick = false;
+
+const sounds = {
+  ambiente: { audio: new Audio('texturas/ambiente.mp3'), volume: 0.2 },
+  hide_unhide: { audio: new Audio('texturas/hide_unhide.mp3'), volume:0.2, start:0, end:0.5 },
+  linterna: { audio: new Audio('texturas/linterna.mp3'), volume:0.1, start:0, end:9999 },
+  jumpscare: { 
+    audio: new Audio('texturas/jumpscare.mp3'), 
+    volume: 0.05, 
+    start: 3.5,
+    end: 5
+  }
+};
+
+
+canvas.style.backgroundImage = 'url("texturas/black.png")';
+
+function playSound(soundObj) {
+  if (!soundObj.audio) return;
+  soundObj.audio.currentTime = soundObj.start || 0;
+  soundObj.audio.volume = soundObj.volume || 1;
+  soundObj.audio.play();
+  if (soundObj.end) {
+    const checkEnd = setInterval(() => {
+      if (soundObj.audio.currentTime >= soundObj.end || soundObj.audio.paused) {
+        soundObj.audio.pause();
+        clearInterval(checkEnd);
+      }
+    }, 50);
+  }
+}
+
+function firstInteraction() {
+  if (!firstClick) {
+    firstClick = true;
+    playSound(sounds.ambiente);
+    const jsAudio = sounds.jumpscare.audio;
+    jsAudio.volume = 0;
+    jsAudio.currentTime = sounds.jumpscare.start || 0;
+    jsAudio.play();
+    setTimeout(()=>{jsAudio.pause(); jsAudio.currentTime=0;},100);
+  }
+}
+
+function flashlight(on) {
+  if (gameOver || jumpscareActive) return;
+  isFlashOn = on;
+  if (on) playSound(sounds.linterna);
+  updateBackground();
+}
+canvas.addEventListener('touchstart', () => { firstInteraction(); flashlight(true); });
+canvas.addEventListener('touchend', () => flashlight(false));
+canvas.addEventListener('mousedown', () => { firstInteraction(); flashlight(true); });
+canvas.addEventListener('mouseup', () => flashlight(false));
+
+hideBtn.addEventListener('click', () => {
+  if (gameOver || jumpscareActive) return;
+  firstInteraction();
+  isHidden = !isHidden;
+  isFlashOn = false;
+  hideTimer = 0;
+  playSound(sounds.hide_unhide);
+  playSound(sounds.ambiente);
+  hideBtn.textContent = isHidden ? "abrir" : "cerrar";
+
+  // 🔹 Oculta automáticamente el panel de oxígeno al esconderse
+  if (isHidden && oxygenPanel.classList.contains('show')) {
+    oxygenPanel.classList.remove('show');
+  }
+
+  oxygenPanelBtn.style.display = isHidden ? "none" : "block";
+  updateBackground();
+});
+
+oxygenPanelBtn.addEventListener
+
+
+('click', () => {
+if (jumpscareActive) return;
+
+});
+
+rechargeBtn.addEventListener('touchstart', () => { if (!jumpscareActive) recharging = true; });
+rechargeBtn.addEventListener('touchend', () => recharging = false);
+rechargeBtn.addEventListener('mousedown', () => { if (!jumpscareActive) recharging = true; });
+rechargeBtn.addEventListener('mouseup', () => recharging = false);
+
+localStorage.setItem("nocheActual", "noche4.html");
+
+function updateBackground() {
+if (gameOver) return;
+if (isHidden) {
+canvas.style.backgroundImage = isFlashOn ? 'url("texturas/escondido.png")' : 'none';
+canvas.style.backgroundColor = isFlashOn ? '' : '#000';
+} else {
+if (currentPhase === 0) {
+canvas.style.backgroundImage = isFlashOn ? 'url("texturas/none.png")' : 'url("texturas/black.png")';
+} else {
+canvas.style.backgroundImage = isFlashOn ? `url("texturas/fase${currentPhase}.png")` : 'url("texturas/black.png")';
+}
+}
+}
+let pressStartTime = 0;
+let holding = false;
+let flashlightJumpscareTriggered = false;
+
+function playFlashlightJumpscare() {
+  if (jumpscareActive || flashlightJumpscareTriggered || gameOver) return;
+  flashlightJumpscareTriggered = true;
+  jumpscareActive = true;
+
+  hideBtn.style.display = "none";
+  oxygenPanelBtn.style.display = "none";
+  if (oxygenPanel.classList.contains('show')) oxygenPanel.classList.remove('show');
+
+  const jsAudio = sounds.jumpscare.audio;
+  jsAudio.volume = 1;
+  jsAudio.currentTime = sounds.jumpscare.start || 0;
+  jsAudio.play();
+
+  const sequence = [1, 2, 3, 2, 1, 2, 3];
+  let i = 0;
+
+  const interval = setInterval(() => {
+    if (i >= sequence.length) {
+      clearInterval(interval);
+      canvas.style.backgroundImage = 'url("texturas/black.png")';
+      jumpscareActive = false;
+      showDeathScreen();
+      return;
+    }
+    canvas.style.backgroundImage = `url("texturas/j${sequence[i]}.png")`;
+    i++;
+  }, 150);
+}
+
+// --- Detección precisa de presión ---
+function startPressCheck() {
+  if (gameOver || jumpscareActive) return;
+  holding = true;
+  pressStartTime = performance.now();
+  checkHold();
+}
+let fullscreenActivated = false;
+
+function enableFullscreen() {
+  if (!fullscreenActivated) {
+    const elem = document.documentElement;
+
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+
+    fullscreenActivated = true;
+  }
+}
+
+document.addEventListener("touchstart", enableFullscreen, { once: true });
+document.addEventListener("click", enableFullscreen, { once: true });
+
+function stopPressCheck() {
+  holding = false;
+}
+
+function checkHold() {
+  if (!holding || flashlightJumpscareTriggered || jumpscareActive || gameOver) return;
+  const heldTime = performance.now() - pressStartTime;
+  if (heldTime >= 5000) {
+    playFlashlightJumpscare();
+    return;
+  }
+  requestAnimationFrame(checkHold);
+}
+
+// Eventos táctiles y mouse solo para el canvas
+canvas.addEventListener('touchstart', startPressCheck);
+canvas.addEventListener('touchend', stopPressCheck);
+canvas.addEventListener('mousedown', startPressCheck);
+canvas.addEventListener('mouseup', stopPressCheck);
+
+function animateCamera() {
+if (isFlashOn && !gameOver && !jumpscareActive) {
+cameraAnimTime += 0.05;
+const moveX = Math.sin(cameraAnimTime * 2) * 2;
+const moveY = Math.cos(cameraAnimTime * 1.5) * 2;
+canvas.style.transform = `translate(${moveX}px, ${moveY}px)`;
+} else canvas.style.transform = "translate(0,0)";
+requestAnimationFrame(animateCamera);
+}
+animateCamera();
+
+function calcularPhaseDelay(hora, minutos) {
+const tiempoTotal = hora * 60 + minutos;
+const inicio = 60;
+const fin = 359;
+const maxDelay = 1000;
+const minDelay = 100;
+if (tiempoTotal <= inicio) return maxDelay;
+if (tiempoTotal >= fin) return minDelay;
+const progreso = (tiempoTotal - inicio) / (fin - inicio);
+return maxDelay - progreso * (maxDelay - minDelay);
+}
+
+function restartGame() {
+gameOver = false;
+currentPhase = 0;
+isHidden = false;
+isFlashOn = false;
+phaseTimer = 0;
+phase5Timer = 0;
+hideTimer = 0;
+oxygen = 100;
+recharging = false;
+jumpscareActive = false;
+canvas.style.backgroundImage = 'url("texturas/black.png")';
+hideBtn.style.display = "block";
+oxygenPanelBtn.style.display = "block";
+gameOverDiv.style.display = "none";
+sounds.jumpscare.audio.volume = 0.05;
+gameHour = 1;
+gameMinute = 0;
+phaseDelay = calcularPhaseDelay(gameHour, gameMinute);
+initialDelayTimer = 0;
+clockDiv.textContent = "01:00";
+clockDiv.style.display = "none";
+}
+
+function playFullJumpscare(callback) {
+  if (jumpscareActive || gameOver) return;
+  jumpscareActive = true;
+
+  // 🔹 Oculta automáticamente el panel de oxígeno si está visible
+  if (oxygenPanel.classList.contains('show')) {
+    oxygenPanel.classList.remove('show');
+  }
+
+  hideBtn.style.display = "none";
+  oxygenPanelBtn.style.display = "none";
+  const jsAudio = sounds.jumpscare.audio;
+  jsAudio.volume = 1;
+  jsAudio.currentTime = sounds.jumpscare.start || 0;
+  jsAudio.play();
+
+  const sequence = [1,2,3,4,5,5,4,3,2,1,1,2,3,4,5];
+  let index = 0;
+  const interval = setInterval(()=>{
+    if(index>=sequence.length){
+      clearInterval(interval);
+      canvas.style.backgroundImage = 'url("texturas/jsc5.png")';
+      jumpscareActive = false;
+      if(callback) callback();
+      return;
+    }
+    canvas.style.backgroundImage = `url("texturas/jsc${sequence[index]}.png")`;
+    index++;
+  },150);
+}
+
+setTimeout(() => {
+  window.location.href = "noche5.html";
+}, 300000); // 5 minutos reales
+
+function showDeathScreen() {
+  gameOver = true;
+  gameOverDiv.style.display = "flex";
+
+  // Redirigir al index.html después de 2 segundos
+  setTimeout(() => {
+    window.location.href = "index.html";
+  }, 10);
+}
+
+
+setInterval(()=>{
+if (gameOver || jumpscareActive) return;
+
+if(currentPhase === 0){
+initialDelayTimer += 1000;
+if(initialDelayTimer >= initialDelay){
+currentPhase = 1;
+}
+} else {
+if (!isFlashOn && !isHidden) {
+phaseTimer += 1000;
+if (phaseTimer >= phaseDelay && currentPhase<maxPhase){
+phaseTimer=0;
+currentPhase++;
+}
+} else phaseTimer = 0;
+}
+
+if(currentPhase===5){
+phase5Timer +=1000;
+if(phase5Timer>=5000) return playFullJumpscare(showDeathScreen);
+} else phase5Timer=0;
+
+if(recharging) oxygen = Math.min(oxygen + 5, 100);
+else oxygen -= 4;
+oxygenLevel.style.width = oxygen + "%";
+if(oxygen <= 0) return playFullJumpscare(showDeathScreen);
+
+if(isHidden){
+hideTimer+=1000;
+if(hideTimer>=3000 && currentPhase>1){
+currentPhase=1;
+hideTimer=0;
+}
+} else hideTimer=0;
+
+updateBackground();
+},1000);
+
+retryBtn.addEventListener('click', restartGame);
+
+</script>
+</body>
+</html>
