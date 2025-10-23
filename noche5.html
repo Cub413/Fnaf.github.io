@@ -191,6 +191,25 @@ color: white;
 </head>
 <body>
 <div id="gameCanvas"></div>
+<button id="fullscreenBtn" style="
+position:fixed;
+top:8px;
+left:8px;
+background:none;
+color:rgba(255,255,255,0.6);
+border:none;
+font-size:16px;
+cursor:pointer;
+z-index:9999;
+transition:opacity 0.3s,transform 0.3s;"
+onclick="
+this.style.opacity='0';
+setTimeout(()=>this.style.display='none',300);
+const el=document.documentElement;
+if(el.requestFullscreen)el.requestFullscreen();
+else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+">⛶</button>
+
 <button id="hideBtn">cerrar</button>
 <button id="oxygenPanelBtn">Energia</button>
 
