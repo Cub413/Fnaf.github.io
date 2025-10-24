@@ -39,16 +39,16 @@ html, body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 250px;
-  height: 300px;
+  width: 180px;            /* más pequeño */
+  height: 220px;           /* más pequeño */
   background: rgba(25, 25, 30, 0.95);
   backdrop-filter: blur(8px);
-  border: 4px solid #555;
-  border-radius: 30px;
-  padding: 20px;
+  border: 3px solid #555;  /* borde más delgado */
+  border-radius: 20px;     /* ligeramente más pequeño */
+  padding: 12px;           /* menos padding */
   font-family: monospace;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 15px rgba(255,255,255,0.05);
-  transform: translate(-50%, 100%) scale(0.9); /* inicia abajo */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 0 10px rgba(255,255,255,0.05);
+  transform: translate(-50%, 100%) scale(0.9);
   opacity: 0;
   transition: transform 0.4s ease, opacity 0.4s ease;
   overflow: hidden;
@@ -56,7 +56,7 @@ html, body {
 }
 
 #oxygenPanel.show {
-  transform: translate(-50%, -50%) scale(1); /* centrado */
+  transform: translate(-50%, -50%) scale(1);
   opacity: 1;
 }
 
@@ -64,45 +64,38 @@ html, body {
 #oxygenPanel::before {
   content: "";
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  border-radius: 20px;
-  border: 2px solid rgba(200,200,200,0.2);
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(200,200,200,0.2);
   pointer-events: none;
   background: repeating-linear-gradient(
     0deg,
     rgba(255,255,255,0.02),
-    rgba(255,255,255,0.02) 2px,
-    transparent 2px,
-    transparent 4px
+    rgba(255,255,255,0.02) 1.5px,
+    transparent 1.5px,
+    transparent 3px
   );
   mix-blend-mode: overlay;
   animation: screenNoise 0.1s infinite;
 }
 
-@keyframes screenNoise {
-  0% { background-position: 0 0; }
-  50% { background-position: 0 2px; }
-  100% { background-position: 0 0; }
-}
-
-/* Ajustes internos */
 #oxygenPanel h3 {
   margin-top: 0;
   text-align: center;
   color: #e0e0e0;
-  font-size: 24px;
-  text-shadow: 0 0 6px rgba(0,0,0,0.7);
+  font-size: 18px;         /* más pequeño */
+  text-shadow: 0 0 4px rgba(0,0,0,0.7);
 }
 
 #oxygenBar {
   width: 70%;
-  height: 25px;
+  height: 18px;            /* más pequeño */
   background: linear-gradient(145deg, #111, #333);
-  border-radius: 12px;
-  margin: 20px auto;
+  border-radius: 10px;
+  margin: 15px auto;
   overflow: hidden;
   box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 }
@@ -111,30 +104,31 @@ html, body {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, #0f0, #7fff00);
-  box-shadow: 0 0 8px limegreen;
+  box-shadow: 0 0 6px limegreen;
   transition: width 0.3s;
 }
 
 #rechargeBtn {
   display: block;
-  margin: 25px auto 0;
-  width: 150px;
-  padding: 12px;
+  margin: 15px auto 0;
+  width: 120px;             /* más pequeño */
+  padding: 8px;             /* menos padding */
   background: linear-gradient(145deg, #111, #333);
   border: 2px solid #666;
-  border-radius: 12px;
+  border-radius: 10px;      /* más pequeño */
   color: white;
-  font-size: 16px;
+  font-size: 14px;          /* más pequeño */
   text-align: center;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   transition: 0.2s all;
 }
 
 #rechargeBtn:hover {
   background: linear-gradient(145deg, #222, #555);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.6);
 }
+
 
 #gameOver {
 position: absolute;
@@ -157,6 +151,7 @@ border-radius: 12px;
 background: rgba(40,40,40,0.9);
 color: white;
 } 
+
 #nochePanel {
   position: absolute;
   top: 10px;
@@ -186,10 +181,27 @@ color: white;
 }
 
 
+
 </style>
 
 </head>
 <body>
+<!-- Botón GUI centrado arriba -->
+<button id="guiBtn" style="
+position: fixed;
+top: 8px;
+left: 50%;
+transform: translateX(-50%);
+padding: 4px 8px;
+background: rgba(50,50,50,0.8);
+color: white;
+border: 2px solid #666;
+border-radius: 8px;
+font-size: 12px;
+z-index: 200;
+cursor: pointer;
+">GUI</button>
+
 <div id="gameCanvas"></div>
 <button id="fullscreenBtn" style="
 position:fixed;
@@ -298,19 +310,233 @@ let jumpscareActive = false;
 let firstClick = false;
 
 const sounds = {
-  ambiente: { audio: new Audio('texturas/ambiente.mp3'), volume: 0.2 },
-  hide_unhide: { audio: new Audio('texturas/hide_unhide.mp3'), volume:0.2, start:0, end:0.5 },
-  linterna: { audio: new Audio('texturas/linterna.mp3'), volume:0.1, start:0, end:9999 },
+  ambiente: { 
+    audio: new Audio('texturas/ambiente.mp3'), 
+    volume: 0.2, 
+    start: 0, 
+    end: 9999 // ambiente continuo
+  },
+
+  hide_unhide: { 
+    audio: new Audio('texturas/hide_unhide.mp3'), 
+    volume: 0.2, 
+    start: 0, 
+    end: 0.5 
+  },
+
+  linterna: { 
+    audio: new Audio('texturas/linterna.mp3'), 
+    volume: 0.1, 
+    start: 0, 
+    end: 9999 // sonido mantenido mientras está encendida
+  },
+
   jumpscare: { 
     audio: new Audio('texturas/jumpscare.mp3'), 
     volume: 0.05, 
-    start: 3.5,
-    end: 5
+    start: 3.5, 
+    end: 5 
+  },
+
+  // 🔥 NUEVOS 🔥
+  foxyStep: { // cuando Foxy sube de fase
+    audio: new Audio('texturas/pososdefoxy.mp3'),
+    volume: 0.25,
+    start: 0,
+    end: 1
+  },
+
+  foxyBreath: { // alumbrandolo en fase 3 o 4
+    audio: new Audio('texturas/foxifase3y4.mp3'),
+    volume: 0.4,
+    start: 0,
+    end: 1.8
+  },
+
+  foxyJumpscare: { // su propio jumpscare
+    audio: new Audio('texturas/jumpscarefoxy.mp3'),
+    volume: 0.8,
+    start: 0,
+    end: 3.5
+  }
+};
+// 🖼️ Precargar imágenes para evitar parpadeos
+function preloadImages(paths, callback) {
+  let loaded = 0;
+  const imgs = [];
+  for (let i = 0; i < paths.length; i++) {
+    imgs[i] = new Image();
+    imgs[i].src = paths[i];
+    imgs[i].onload = () => {
+      loaded++;
+      if (loaded === paths.length && callback) callback();
+    };
+  }
+}
+
+canvas.style.backgroundImage = 'url("texturas/black.png")';
+// 📌 Control de cámaras
+// 🎥 Control de cámaras: frente ↔ derecha
+
+
+// 📌 Fases Foxy (cámara derecha)
+let foxyPhase = 0;
+let foxyTimer = 0;
+let foxyLightTimer = 0;
+const foxyMaxPhase = 5;
+
+// 🎥 Botón único para girar cámara
+let currentCamera = 0;
+const cameraBtn = document.createElement("button");
+cameraBtn.style.position = "absolute";
+cameraBtn.style.top = "30%";
+cameraBtn.style.right = "10px";
+cameraBtn.style.width = "50px";          // opcional: ancho fijo
+cameraBtn.style.height = "120px";        // ↑ más alto
+cameraBtn.style.lineHeight = "120px";    // centra la flecha verticalmente
+cameraBtn.style.padding = "0";           // elimina padding vertical
+cameraBtn.style.background = "rgba(40,40,40,0.9)";
+cameraBtn.style.color = "white";
+cameraBtn.style.border = "2px solid #666";
+cameraBtn.style.borderRadius = "12px";
+cameraBtn.style.fontSize = "18px";
+cameraBtn.style.textAlign = "center";    // centra horizontalmente la flecha
+cameraBtn.style.opacity = "0.35";
+cameraBtn.style.zIndex = "150";
+cameraBtn.textContent = "→";
+document.body.appendChild(cameraBtn);
+
+// ✅ Cambio de cámara
+function updateCamera() {
+  if (jumpscareActive) return;
+
+  currentCamera = currentCamera === 0 ? 1 : 0;
+  cameraBtn.textContent = currentCamera === 1 ? "←" : "→";
+  foxyLightTimer = 0;
+  updateBackground();
+
+  // 🔹 Si se cambia a la cámara de Foxy (derecha)
+  if (currentCamera === 1) {
+    // Cierra el panel si está abierto
+    if (oxygenPanel.classList.contains('show')) {
+      oxygenPanel.classList.remove('show');
+    }
+    // Oculta el botón de energía
+    oxygenPanelBtn.style.display = "none";
+  } else {
+    // 🔹 Si se vuelve a la cámara normal, mostrar el botón otra vez
+    oxygenPanelBtn.style.display = "block";
+  }
+}
+
+cameraBtn.addEventListener("click", updateCamera);
+
+// 🎯 Jumpscare Foxy con su sonido propio
+function playFoxyJumpscare() {
+  if (jumpscareActive || currentCamera !== 1 || gameOver) return;
+  jumpscareActive = true;
+
+  hideBtn.style.display = "none";
+  oxygenPanelBtn.style.display = "none";
+  cameraBtn.style.display = "none";
+
+  // 🎧 Activar sonido del jumpscare de Foxy
+  const s = sounds.foxyJumpscare;
+  s.audio.currentTime = s.start || 0;
+  s.audio.volume = s.volume || 1;
+  s.audio.play();
+
+  // 🔥 Secuencia de imágenes (en orden, tipo parpadeo)
+  const sequence = [1, 2, 3, 2, 1, 2, 3];
+  let i = 0;
+
+  const interval = setInterval(() => {
+    if (i >= sequence.length) {
+      clearInterval(interval);
+      canvas.style.backgroundImage = 'url("texturas/js3.png")'; // último frame fijo
+      showDeathScreen(); // finaliza la partida
+      return;
+    }
+
+    // cambia las imágenes en orden
+    canvas.style.backgroundImage = `url("texturas/js${sequence[i]}.png")`;
+    i++;
+  }, 150);
+}
+
+function updateFoxyPhases() {
+  if (gameOver || jumpscareActive) return;
+
+  if (isFlashOn && currentCamera === 1) {
+    foxyTimer = 0;
+    foxyLightTimer += 1000;
+
+    if (foxyPhase >= 3 && foxyPhase <= 4) {
+      playSound(sounds.foxyBreath);
+    }
+
+    // 🚫 Detiene pasos si lo alumbras
+    const stepSound = sounds.foxyStep.audio;
+    if (!stepSound.paused) {
+      stepSound.pause();
+      stepSound.currentTime = 0;
+    }
+
+    if (foxyLightTimer >= 3000) {
+      foxyPhase = 0;
+      foxyLightTimer = 0;
+    }
+
+  } else {
+    foxyLightTimer = 0;
+    foxyTimer += 1000;
+
+    if (foxyTimer >= phaseDelay && foxyPhase < foxyMaxPhase) {
+      foxyTimer = 0;
+      foxyPhase++;
+
+      // 👣 Sonido de pasos cuando avanza (usa start y end)
+      playSound(sounds.foxyStep);
+    }
+  }
+
+  if (foxyPhase === foxyMaxPhase && currentCamera === 1) {
+    playFoxyJumpscare();
+  }
+}
+
+
+// ⛔ Antes: camRightBtn estaba aquí 👉 ahora ya no existe
+// Ahora ya se usa cameraBtn ✅
+
+// Actualizamos el fondo según cámara
+const originalBG = updateBackground;
+updateBackground = function(){
+  if(currentCamera === 0){
+    originalBG();
+    return;
+  }
+
+  if(isHidden){
+    canvas.style.backgroundColor = "#000";
+    canvas.style.backgroundImage = "none";
+    return;
+  }
+
+  if(isFlashOn){
+    if(foxyPhase === 0){
+      canvas.style.backgroundImage = 'url("texturas/none_foxy.png")';
+    } else {
+      canvas.style.backgroundImage = `url("texturas/fase${foxyPhase}f.png")`;
+    }
+  } else {
+    canvas.style.backgroundColor = "#000";
+    canvas.style.backgroundImage = "none";
   }
 };
 
-
-canvas.style.backgroundImage = 'url("texturas/black.png")';
+// Loop de Foxy
+setInterval(updateFoxyPhases, 1000);
 
 function playSound(soundObj) {
   if (!soundObj.audio) return;
@@ -341,10 +567,20 @@ function firstInteraction() {
 
 function flashlight(on) {
   if (gameOver || jumpscareActive) return;
+
+  // 🔦 Si encendemos la linterna en la cámara de Foxy, salimos del escondite automáticamente
+  if (on && currentCamera === 1 && isHidden) {
+    isHidden = false;
+    hideBtn.textContent = "cerrar"; // actualiza el texto del botón
+    playSound(sounds.hide_unhide);  // sonido al salir
+    oxygenPanelBtn.style.display = "block"; // vuelve a mostrar el panel
+  }
+
   isFlashOn = on;
   if (on) playSound(sounds.linterna);
   updateBackground();
 }
+
 canvas.addEventListener('touchstart', () => { firstInteraction(); flashlight(true); });
 canvas.addEventListener('touchend', () => flashlight(false));
 canvas.addEventListener('mousedown', () => { firstInteraction(); flashlight(true); });
@@ -449,22 +685,7 @@ function startPressCheck() {
   pressStartTime = performance.now();
   checkHold();
 }
-let fullscreenActivated = false;
 
-function enableFullscreen() {
-  if (!fullscreenActivated) {
-    const elem = document.documentElement;
-
-    if (elem.requestFullscreen) elem.requestFullscreen();
-    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-
-    fullscreenActivated = true;
-  }
-}
-
-document.addEventListener("touchstart", enableFullscreen, { once: true });
-document.addEventListener("click", enableFullscreen, { once: true });
 
 function stopPressCheck() {
   holding = false;
@@ -490,8 +711,8 @@ function calcularPhaseDelay(hora, minutos) {
 const tiempoTotal = hora * 60 + minutos;
 const inicio = 60;
 const fin = 359;
-const maxDelay = 2000;
-const minDelay = 1000;
+const maxDelay = 3000;
+const minDelay = 1500;
 if (tiempoTotal <= inicio) return maxDelay;
 if (tiempoTotal >= fin) return minDelay;
 const progreso = (tiempoTotal - inicio) / (fin - inicio);
@@ -553,9 +774,6 @@ function playFullJumpscare(callback) {
   },150);
 }
 
-setTimeout(() => {
-  window.location.href = "noche4.html";
-}, 300000); // 5 minutos reales
 
 function showDeathScreen() {
   gameOver = true;
@@ -608,6 +826,137 @@ updateBackground();
 },1000);
 
 retryBtn.addEventListener('click', restartGame);
+const guiBtn = document.getElementById('guiBtn');
+let guiHidden = false;
+
+guiBtn.addEventListener('click', () => {
+  guiHidden = !guiHidden;
+
+  const buttons = [hideBtn, oxygenPanelBtn, cameraBtn];
+
+  buttons.forEach(btn => {
+    if(guiHidden){
+      btn.style.background = 'transparent';
+      btn.style.border = 'none';
+      btn.style.color = 'transparent';
+      btn.style.boxShadow = 'none';
+      btn.style.opacity = '0'; // completamente invisible
+    } else {
+      // Restaurar estilos originales
+      if(btn === hideBtn){
+        btn.style.background = 'rgba(40,40,40,0.9)';
+        btn.style.border = '2px solid #666';
+        btn.style.color = 'white';
+        btn.style.opacity = '0.3';
+      } else if(btn === oxygenPanelBtn){
+        btn.style.background = 'rgba(40,40,40,0.9)';
+        btn.style.border = '2px solid #666';
+        btn.style.color = 'white';
+        btn.style.opacity = '0.3';
+      } else if(btn === cameraBtn){
+        btn.style.background = 'rgba(40,40,40,0.9)';
+        btn.style.border = '2px solid #666';
+        btn.style.color = 'white';
+        btn.style.opacity = '0.35';
+      }
+    }
+  });
+});
+// 🕕 PANTALLA DE VICTORIA — 6:00 AM Y NOCHE 2
+const victoryScreen = document.createElement("div");
+victoryScreen.style.position = "fixed";
+victoryScreen.style.top = "0";
+victoryScreen.style.left = "0";
+victoryScreen.style.width = "100vw";
+victoryScreen.style.height = "100vh";
+victoryScreen.style.display = "none";
+victoryScreen.style.alignItems = "center";
+victoryScreen.style.justifyContent = "center";
+victoryScreen.style.background = "black";
+victoryScreen.style.zIndex = "99999";
+victoryScreen.style.transition = "transform 5s ease, opacity 3s ease";
+
+const victoryText = document.createElement("h1");
+victoryText.textContent = "6:00 AM";
+victoryText.style.color = "white";
+victoryText.style.fontFamily = "'Press Start 2P', monospace";
+victoryText.style.fontSize = "90px";
+victoryText.style.textShadow = "0 0 20px rgba(255,255,255,0.9)";
+victoryText.style.transition = "transform 5s ease, opacity 3s ease";
+victoryScreen.appendChild(victoryText);
+document.body.appendChild(victoryScreen);
+
+// 🔹 Pantalla "NOCHE 2"
+const nightScreen = document.createElement("div");
+nightScreen.style.position = "fixed";
+nightScreen.style.top = "0";
+nightScreen.style.left = "0";
+nightScreen.style.width = "100vw";
+nightScreen.style.height = "100vh";
+nightScreen.style.display = "none";
+nightScreen.style.alignItems = "center";
+nightScreen.style.justifyContent = "center";
+nightScreen.style.background = "black";
+nightScreen.style.zIndex = "99999";
+nightScreen.style.transition = "transform 5s ease, opacity 3s ease";
+
+const nightText = document.createElement("h1");
+nightText.textContent = "NOCHE 4";
+nightText.style.color = "white";
+nightText.style.fontFamily = "'Press Start 2P', monospace";
+nightText.style.fontSize = "90px";
+nightText.style.textShadow = "0 0 20px rgba(255,255,255,0.9)";
+nightText.style.transition = "transform 5s ease, opacity 3s ease";
+nightScreen.appendChild(nightText);
+document.body.appendChild(nightScreen);
+
+function showVictoryScreen() {
+  if (gameOver || jumpscareActive) return; // no mostrar si ya se perdió
+  jumpscareActive = true; // bloquear jumpscares
+
+  // 🔇 Detener sonidos activos
+  for (const key in sounds) {
+    const s = sounds[key];
+    if (s.audio) {
+      s.audio.pause();
+      s.audio.currentTime = 0;
+    }
+  }
+
+  // 🔹 Ocultar interfaz
+  hideBtn.style.display = "none";
+  oxygenPanelBtn.style.display = "none";
+  cameraBtn.style.display = "none";
+  if (oxygenPanel.classList.contains('show')) {
+    oxygenPanel.classList.remove('show');
+  }
+
+  // 🔹 Mostrar pantalla 6:00 AM
+  victoryScreen.style.display = "flex";
+  victoryText.style.transform = "scale(0.7)";
+  setTimeout(() => {
+    victoryText.style.transform = "scale(1.3)";
+  }, 50);
+
+  // 🔹 Luego de 5 segundos, mostrar pantalla "NOCHE 2"
+  setTimeout(() => {
+    victoryScreen.style.opacity = "0";
+    nightScreen.style.display = "flex";
+    nightText.style.transform = "scale(1.2)";
+    setTimeout(() => {
+      nightText.style.transform = "scale(0.7)";
+      nightScreen.style.opacity = "1";
+    }, 100);
+  }, 5000);
+
+  // 🔹 Luego de 10 segundos (5 + 5), ir a la siguiente noche
+  setTimeout(() => {
+    window.location.href = "noche4.html";
+  }, 10000);
+}
+
+// 🕒 Mostrar victoria después de 6 minutos reales (360 000 ms)
+setTimeout(showVictoryScreen, 300000);
 
 </script>
 </body>
